@@ -4,6 +4,11 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true},
+        tokenVersion: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
         username: {
             type: DataTypes.STRING(50),
             allowNull: false,
@@ -22,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false
         }}, {
-            tableName: 'users',
+            tableName: "users",
             timestamps: true,
         });
         

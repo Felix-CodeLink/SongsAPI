@@ -1,11 +1,15 @@
 const express = require("express");
 const sequelize = require("./database");
 const app = express();
-const userRoutes = require("./routes/routes.js");
-const PORT = 5018;
+
 
 app.use(express.json());
-app.use("/api", userRoutes);
+
+const UserRoutes = require("./routes/UserRoutes.js");
+
+app.use("/user", UserRoutes);
+
+const PORT = 5018;
 
 sequelize.sync()
     .then(() => console.log("Banco conectado"))
