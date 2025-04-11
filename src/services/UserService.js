@@ -11,6 +11,7 @@ module.exports = {
         if(userExistName){
             throw new Error("Este username ja esta em uso.");
         }
+        
         const userExistEmail = await UserRepository.findByEmail(email);
         if(userExistEmail){
             throw new Error("Este email ja esta em uso.");
@@ -33,10 +34,8 @@ module.exports = {
     async deleteUserByToken(id){
         const userExist = await UserRepository.findById(id)
 
-        if (!userExist){
-            throw new Error("Usuario ja não existe");
-        }
-        
+        if (!userExist)throw new Error("Usuario ja não existe");
+
         await UserRepository.deleteUser(id);
     },
 

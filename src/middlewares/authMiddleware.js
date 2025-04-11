@@ -14,12 +14,15 @@ module.exports = async (req, res, next) => {
         const decoded = jwt.verify(token, secret);
         const user = await UserRepository.findById(decoded.id);
         req.userId = decoded.id;
+
         if (!user){
             return res.status(401).json({message: "Usuario não encontrado"})
         }
+
         if(decoded.tokenVersion !== user.tokenVersion){
             return res.status(401).json({message: "Token expirado ou invalido"})
         }
+        
         return next();
     }catch(error){
         console.log(error);
