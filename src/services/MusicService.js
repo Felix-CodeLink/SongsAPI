@@ -23,7 +23,12 @@ module.exports = {
             throw new Error("Nome do artista muito curto.");
           }
 
-        return await MusicRepository.createMusic(data);
+        await MusicRepository.createMusic(data);
+
+        return {MusicName: data.musicName,
+                artist: data.artistName,
+                genre: data.genre
+              }
     }
 
 };

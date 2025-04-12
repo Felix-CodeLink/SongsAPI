@@ -1,5 +1,6 @@
 const MusicService = require("../services/MusicService.js");
 const fs = require("fs");
+const logger = require("../utils/logger");
 
 module.exports = {
     async upload(req, res){
@@ -15,19 +16,18 @@ module.exports = {
                 genre: req.body.genre
             });
 
-            res.status(201).json({message: "Arquivo salvo com sucesso", music: newMusic});
+            logger.success("MusicControler.update", `Musica ${file.originalname} salva`);
+            res.status(201).json({message: "Arquivo salvo com sucesso", newMusic});
 
         }catch(error) {
-            console.error("🔴 Erro no upload de audio: -> ", error.message);
-            console.error(error.stack);
-
+            logger.error("MusicControler.upload ", error);
 
             if(req.file){
                 fs.unlink(req.file.path, err => {
                     if (err) {
-                        console.warn("🟡 Falha ao remover arquivo:", err.message);
+                        logger.warn("MusicControler.upload ", err.message);
                     } else{
-                        console.log("🟢 Arquivo removido com sucesso");
+                        logger.success("MusicControler.upload ", "Arquivo deletado com sucesso");
                     }
                 });
             }
