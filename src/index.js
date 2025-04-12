@@ -8,6 +8,9 @@ app.use(express.json());
 const UserRoutes = require("./routes/UserRoutes.js");
 app.use("/user", UserRoutes);
 
+const MusicRoutes = require("./routes/MusicRoutes.js");
+app.use("/music", MusicRoutes);
+
 const PORT = 5018;
 
 (async () => {

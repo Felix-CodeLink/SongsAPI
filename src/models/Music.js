@@ -20,7 +20,9 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(50),
             unique: true,
             allowNull: false,
-        },
+            validate: {
+                len: [2, 50],
+            }},
         path: {
             type: DataTypes.STRING,
             unique: true,
@@ -29,11 +31,16 @@ module.exports = (sequelize, DataTypes) => {
         artistName: {
             type: DataTypes.STRING(50),
             allowNull: false,
+            validate: {
+                len: [2, 50],}
         },
         genre: {
             type: DataTypes.ENUM(...GENRES),
             allowNull: false,
         }
+    }, {
+        tableName: "musics",
+        timestamps: true,
     });
 
     Music.associate = (models) => {

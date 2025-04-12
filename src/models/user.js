@@ -3,7 +3,8 @@ module.exports = (sequelize, DataTypes) => {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
-            autoIncrement: true},
+            autoIncrement: true
+        },
         tokenVersion: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -25,8 +26,11 @@ module.exports = (sequelize, DataTypes) => {
             }},
         password: {
             type: DataTypes.STRING,
-            allowNull: false
-        }}, {
+            allowNull: false,
+            validate: {
+                len: [6, 255],
+            }},
+        }, {
             tableName: "users",
             timestamps: true,
         });

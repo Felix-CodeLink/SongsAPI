@@ -7,8 +7,11 @@ module.exports = {
             const {username, email, password} = req.body;
             const newUser = await UserService.createUser({username, email, password});
             res.status(201).json(newUser);
+            
         } catch(error){
-            console.log(error);
+            console.error("🔴 Erro ao cadastrar usuario: -> ", error.message);
+            console.error(error.stack);
+
             res.status(400).json({ message: error.message});
         }
     },
@@ -17,9 +20,12 @@ module.exports = {
         try{
             await UserService.deleteUserByToken(req.userId);
             res.status(200).json({ message: "Usuario deletado com sucesso"});
+
         } catch(error){
-            console.log(error)
-            res.status(401).json({ message: error.message});
+            console.error("🔴 Erro ao deletar usuario: -> ", error.message);
+            console.error(error.stack);
+
+            res.status(409).json({ message: error.message});
         }
     },
 
@@ -35,8 +41,11 @@ module.exports = {
 
             const newToken = await UserService.updateUser(data, id);
             res.status(200).json({message: "Usuario atualizado com sucesso", token: newToken});
+
         } catch(error){
-            console.log(error);
+            console.error("🔴 Erro ao atualizar usuario: -> ",error.message);
+            console.error(error.stack);
+
             res.status(409).json({message: error.message});
         }
     }
