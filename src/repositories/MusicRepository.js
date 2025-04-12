@@ -7,6 +7,10 @@ const MusicRepository = {
 
     async findByName(musicName){
         return await Music.findOne({where: {musicName}});
+    },
+
+    async searchMusics(data){
+        return await Music.findAll({where: data, attributes: ['id', 'musicName', 'artistName', 'genre']});
     }
 };
 

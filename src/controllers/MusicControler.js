@@ -34,5 +34,24 @@ module.exports = {
 
             res.status(500).json({message: error.message});
         }
+    },
+
+    async search(req, res){
+        try{
+            const {musicName, artistName, genre} = req.body;
+            const musicData = {
+                musicName: musicName,
+                artistName: artistName,
+                genre: genre
+            };
+
+            const musicsArray = await MusicService.search(musicData);
+
+            logger.success("MusicControler.search", `Musicas encontradas com sucesso. Parametros: ${JSON.stringify(musicData)}`);
+            res.status(200).json({message: musicsArray});
+        }catch(error){
+            logger.error("MusicControler.search", error);
+            res.status(500).json({message: error.message});
+        }
     }
 };

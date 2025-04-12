@@ -1,4 +1,5 @@
 const MusicRepository = require("../repositories/MusicRepository");
+const {Op} = require("sequelize");
 const GENRES = require("../constants/genres");
 const fs = require("fs").promises;
 
@@ -29,6 +30,34 @@ module.exports = {
                 artist: data.artistName,
                 genre: data.genre
               }
+    },
+
+    async search(data){
+
+      let where = {};
+
+      if(data.genre !== null && !GENRES.includes(data.genre.toLowerCase())){
+        throw new Error("Campo de genero invalido");
+      }
+
+      if(data.musicName && typeof data.musicName === "string"){
+        where.musicName = {[Op.iLike]: `%${data.musicName}%`};
+      }
+      if(data.artistName && typeof data.artistName === "string"){
+        where.artistName = [Op.iLike] `%${data.artistName}%`;
+      }
+
+      if(data.genre){
+          where.genre = `${data.genre}`;
+      }
+
+      const musicsArray = await MusicRepository.searchMusics(where);
+
+      if(musicsArray.length === 0){
+        throw new Error("Nenhuma musica encontrada");
+      }
+
+      return musicsArray;
     }
 
 };

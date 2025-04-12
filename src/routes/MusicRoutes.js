@@ -9,4 +9,6 @@ router.use(authMiddleware);
 
 router.post("/upload", uploadAudioMiddleware.single("file"), MusicControler.upload);
 
+router.get("/search", MusicControler.search)
+
 module.exports = router;
