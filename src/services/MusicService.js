@@ -10,7 +10,7 @@ module.exports = {
         const existFileName = await MusicRepository.findByName(data.musicName);
         if(existFileName){
             throw new Error("Este nome de música já existe");
-            }
+          }
 
         if (!data.artistName || !data.genre) {
             throw new Error("Campos obrigatórios ausentes.");
@@ -48,7 +48,7 @@ module.exports = {
       }
 
       if(data.genre){
-          where.genre = `${data.genre}`;
+          where.genre = `${data.genre.toLowerCase()}`;
       }
 
       const musicsArray = await MusicRepository.searchMusics(where);
@@ -58,6 +58,19 @@ module.exports = {
       }
 
       return musicsArray;
+    },
+
+    async deleteMusic(musicId, userId){
+      const musicExist = await MusicRepository.findById(musicId);
+      if(!musicExist) throw new Error("Musica inexistente");
+
+      if(musicExist.userId !== userId) throw new Error("Usuario não tem permissão para executar a exclusao");
+
+      fs.unlink(musicExist.path, err => {
+                if (err) throw new Error("Erro ao deletar musica");
+            });
+      
+      await MusicRepository.deleteMusic(musicId);
     }
 
 };

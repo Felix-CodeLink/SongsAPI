@@ -13,7 +13,7 @@ module.exports = {
                 path: file.path,
                 userId: req.userId,
                 artistName: req.body.artistName,
-                genre: req.body.genre
+                genre: req.body.genre.toLowerCase()
             });
 
             logger.success("MusicControler.update", `Musica ${file.originalname} salva`);
@@ -52,6 +52,20 @@ module.exports = {
         }catch(error){
             logger.error("MusicControler.search", error);
             res.status(500).json({message: error.message});
+        }
+    },
+
+    async delete(req, res){
+        try{
+            const {musicId} = req.params;
+
+            await MusicService.deleteMusic(musicId, req.userId);
+
+            logger.success("MusicControler.deleteMusic", `Musica de id: ${musicId} deletada por "${req.userId}`);
+            res.status(200).json({message: "Musica deletada com sucesso"});
+        }catch(error){
+            logger.error("MusicControler.deleteMusic", error);
+            res.status(409).json({message: error.message});
         }
     }
 };

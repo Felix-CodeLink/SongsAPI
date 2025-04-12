@@ -11,4 +11,6 @@ router.post("/upload", uploadAudioMiddleware.single("file"), MusicControler.uplo
 
 router.get("/search", MusicControler.search)
 
+router.delete("/delete/:musicId", MusicControler.delete);
+
 module.exports = router;
