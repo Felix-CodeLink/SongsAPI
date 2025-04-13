@@ -6,7 +6,7 @@ const MusicRepository = {
     },
 
     async findByName(musicName){
-        return await Music.findOne({where: {musicName}});
+        return await Music.findOne({where: {musicName}, attributes: ["musicName"]});
     },
 
     async searchMusics(data){
@@ -14,7 +14,7 @@ const MusicRepository = {
     },
 
     async findById(id){
-        return await Music.findOne({where: {id}, attributes: ["userId", "musicName", "path"]});
+        return await Music.findOne({where: {id}, attributes: ["userId", "musicName", "path", "artistName", "genre"]});
     },
 
     async deleteMusic(id){

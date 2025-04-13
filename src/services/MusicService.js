@@ -82,7 +82,7 @@ module.exports = {
       if(music.userId !== userId) throw new Error("Usuario não tem permissão para executar a exclusao");
 
       const musicNameExist = await MusicRepository.findByName(data.musicName);
-      if(musicNameExist && musicNameExist.musicName !== data.musicName) throw new Error("Nome de musica ja em uso");
+      if(musicNameExist && music.musicName !== data.musicName) throw new Error("Nome de musica ja em uso");
 
       if(data.genre && !GENRES.includes(data.genre.toLowerCase())){
         throw new Error("Campo de genero musical invalido");
