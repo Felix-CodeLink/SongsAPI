@@ -32,7 +32,7 @@ module.exports = {
               }
     },
 
-    async search(data){
+    async searchMusics(data){
 
       let where = {};
 
@@ -71,6 +71,33 @@ module.exports = {
             });
       
       await MusicRepository.deleteMusic(musicId);
+    },
+
+    async updateMusic(data, musicId, userId){
+
+      const music = await MusicRepository.findById(musicId);
+
+      if(!music) throw Error("Musica inexistente");
+      if(music.userId !== userId) throw new Error("Usuario não tem permissão para executar a exclusao");
+
+      const musicNameExist = await MusicRepository.findByName(data.musicName);
+      if(musicNameExist && musicNameExist.musicName !== data.musicName) throw new Error("Nome de musica ja em uso");
+
+      if(data.genre && !GENRES.includes(data.genre.toLowerCase())){
+        throw new Error("Campo de genero musical invalido");
+      }
+      if(data.artistName && data.artistName.length < 2){
+        throw new Error("Campo de nome de artista invalido");
+      }
+      
+      const updatedMusic = {
+            musicName: data.musicName || music.musicName,
+            artistName: data.artistName || music.artistName,
+            genre: data.genre.toLowerCase() || music.genre
+      };
+
+      await MusicRepository.updateMusic(updatedMusic, musicId);
+
     }
 
 };

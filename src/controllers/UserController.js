@@ -17,7 +17,7 @@ module.exports = {
         }
     },
 
-    async delete(req, res){
+    async deleteUser(req, res){
         try{
             await UserService.deleteUserByToken(req.userId);
 
@@ -30,7 +30,7 @@ module.exports = {
         }
     },
 
-    async update(req, res){
+    async updateUser(req, res){
         try{
             const {username, email, password} = req.body;
             const id = req.userId;

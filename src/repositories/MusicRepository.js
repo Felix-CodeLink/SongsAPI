@@ -19,6 +19,10 @@ const MusicRepository = {
 
     async deleteMusic(id){
         return await Music.destroy({where: {id}});
+    },
+
+    async updateMusic(data, id){
+        return await Music.update(data, {where: {id}});
     }
 };
 
