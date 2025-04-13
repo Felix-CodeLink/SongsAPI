@@ -14,7 +14,7 @@ const MusicRepository = {
     },
 
     async findById(id){
-        return await Music.findOne({where: {id}, attributes: ["userId", "path"]});
+        return await Music.findOne({where: {id}, attributes: ["userId", "musicName", "path"]});
     },
 
     async deleteMusic(id){
@@ -23,7 +23,7 @@ const MusicRepository = {
 
     async updateMusic(data, id){
         return await Music.update(data, {where: {id}});
-    }
+    },
 };
 
 module.exports = MusicRepository;

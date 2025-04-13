@@ -82,5 +82,29 @@ module.exports = {
             logger.error("MusicControler.updateMusic", error);
             res.status(400).json({message: error.message});
         }
+    },
+
+    async getMusicFile(req, res){
+        try{
+            const {musicId} = req.params;
+
+            const musicFile = await MusicService.getMusicFile(musicId);
+
+            res.setHeader("Content-Type", musicFile.mimeType);
+            res.setHeader("Content-Disposition", `inline; filename="${(musicFile.musicName)}"`);
+
+            const stream = fs.createReadStream(musicFile.path);
+            stream.pipe(res);
+
+            stream.on("error", (err) => {
+                console.error(err);
+                res.destroy(err);
+            });
+
+            logger.success("MusicController.getMusicFile", "Arquivo de musica enviado com sucesso");
+        }catch(error){
+            logger.error("MusicControler.getMusicFile", error);
+            res.status(400).json({message: error.message});
+        }
     }
 };

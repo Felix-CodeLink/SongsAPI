@@ -2,6 +2,7 @@ const MusicRepository = require("../repositories/MusicRepository");
 const {Op} = require("sequelize");
 const GENRES = require("../constants/genres");
 const fs = require("fs").promises;
+const mime = require("mime-types");
 
 module.exports = {
 
@@ -61,12 +62,12 @@ module.exports = {
     },
 
     async deleteMusic(musicId, userId){
-      const musicExist = await MusicRepository.findById(musicId);
-      if(!musicExist) throw new Error("Musica inexistente");
+      const musicData = await MusicRepository.findById(musicId);
+      if(!musicData) throw new Error("Musica inexistente");
 
-      if(musicExist.userId !== userId) throw new Error("Usuario não tem permissão para executar a exclusao");
+      if(musicData.userId !== userId) throw new Error("Usuario não tem permissão para executar a exclusao");
 
-      fs.unlink(musicExist.path, err => {
+      fs.unlink(musicData.path, err => {
                 if (err) throw new Error("Erro ao deletar musica");
             });
       
@@ -98,6 +99,24 @@ module.exports = {
 
       await MusicRepository.updateMusic(updatedMusic, musicId);
 
+    },
+
+    async getMusicFile(musicId){
+      const musicData = await MusicRepository.findById(musicId);
+      if(!musicData) throw new Error("Musica inexistente");
+
+      const mimeType = mime.lookup(musicData.path);
+      if (!mimeType || !mimeType.startsWith("audio/")) {
+        throw new Error("Tipo de conteúdo inválido");
+      }
+
+      const data = {
+        path: musicData.path,
+        musicName: musicData.musicName,
+        mimeType
+      };
+
+      return data;
     }
 
 };
