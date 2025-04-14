@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const Playlist = sequelize.define("Music", {
+    const Playlist = sequelize.define("Playlist", {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
