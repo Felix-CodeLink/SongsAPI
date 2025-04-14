@@ -10,4 +10,6 @@ router.post("/create", PlaylistController.createPlaylist);
 
 router.put("/update/:playlistId", PlaylistController.updatePlaylist);
 
+router.delete("/delete/:playlistId", PlaylistController.deletePlaylist);
+
 module.exports = router;
