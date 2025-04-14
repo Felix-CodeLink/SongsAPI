@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
                 key: "id",
             },
             onUpdate: "CASCADE",
+            onDelete: "CASCADE",
         },
         musicName: {
             type: DataTypes.STRING(50),
