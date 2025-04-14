@@ -18,6 +18,24 @@ module.exports = {
             logger.error("PlaylistController.createPlaylist", error);
             res.status(400).json({message: error.message});
         }
+    },
+
+    async updatePlaylist(req, res){
+        try{
+
+            const {playlistId} = req.params;
+            const {playlistName} = req.body;
+
+            const updatedPlaylist = await PlaylistService.updatePlaylist(playlistName, playlistId, req.userId);
+
+            logger.success(
+                "PlaylistController.updatePlaylist",
+                `Playlist "${playlistId}" atualizada para "${updatedPlaylist}" por usuario "${req.userId}"`);
+            res.status(200).json({message: updatedPlaylist});
+        }catch(error){
+            logger.error("PlaylistController.updatePlaylist", error);
+            res.status(400).json({message: error.message});
+        }
     }
 
 };

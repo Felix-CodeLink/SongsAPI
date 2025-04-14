@@ -8,4 +8,6 @@ router.use(authMuddleware);
 
 router.post("/create", PlaylistController.createPlaylist);
 
+router.put("/update/:playlistId", PlaylistController.updatePlaylist);
+
 module.exports = router;

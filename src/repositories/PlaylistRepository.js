@@ -8,5 +8,13 @@ module.exports = {
 
     async createPlaylist(data){
         return await Playlist.create(data);
+    },
+
+    async findById(id){
+        return await Playlist.findOne({where: {id}});
+    },
+
+    async updatePlaylist(playlistName, id){
+        return await Playlist.update({playlistName}, {where: {id}});
     }
 };
