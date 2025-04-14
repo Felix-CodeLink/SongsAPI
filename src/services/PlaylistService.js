@@ -45,6 +45,14 @@ module.exports = {
         if(playlistExist.userId !== userId)throw new Error("Usuario não tem permissão para executar a deleção");
 
         await PlaylistRepository.deletePlaylist(playlistId);
+    },
+
+    async getUserPlaylists(userId){
+        const playlistsArray = await PlaylistRepository.findUserPlaylists(userId);
+
+        if(playlistsArray.length <= 0)throw new Error("Nenhuma playlist encontrada para este usuario");
+
+        return playlistsArray;
     }
 
 };

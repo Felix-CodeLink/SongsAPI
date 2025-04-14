@@ -20,5 +20,9 @@ module.exports = {
 
     async deletePlaylist(id){
         return await Playlist.destroy({where: {id}});
+    },
+
+    async findUserPlaylists(userId){
+        return await Playlist.findAll({where: {userId}, attributes: ["id", "playlistName"]});
     }
 };

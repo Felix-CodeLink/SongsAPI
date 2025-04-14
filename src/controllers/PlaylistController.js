@@ -52,6 +52,20 @@ module.exports = {
             logger.error("PlaylistController.deletePlaylist", error);
             res.status(400).json({message: error.message});
         }
+    },
+
+    async getUserPlaylists(req, res){
+        try{
+            const userPlaylists = await PlaylistService.getUserPlaylists(req.userId);
+
+            logger.success(
+                "PlaylistController.getUserPlaylists",
+                `Playlists do usuario "${req.userId}" entregues. Quantidade: ${userPlaylists.length}`);
+            res.status(200).json({message: userPlaylists});
+        }catch(error){
+            logger.error("PlaylistController.getUserPlaylists", error);
+            res.status(400).json({message: error.message});
+        }
     }
 
 };
