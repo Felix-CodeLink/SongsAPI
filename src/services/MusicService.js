@@ -117,6 +117,14 @@ module.exports = {
       };
 
       return data;
+    },
+
+    async deleteMusicsByUserId(userId){
+      const musicArray = await MusicRepository.findMusicsByUser(userId);
+
+        for(const music of musicArray){
+            await MusicService.deleteMusic(music.id, id);
+        }
     }
 
 };
