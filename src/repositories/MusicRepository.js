@@ -24,6 +24,10 @@ const MusicRepository = {
     async updateMusic(data, id){
         return await Music.update(data, {where: {id}});
     },
+
+    async findMusicsByUser(userId){
+        return await Music.findAll({where: {userId}, attributes: ["id"]});
+    }
 };
 
 module.exports = MusicRepository;

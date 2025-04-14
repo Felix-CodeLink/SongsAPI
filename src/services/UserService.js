@@ -3,6 +3,8 @@ require("dotenv").config({ path: require("path").resolve(__dirname, "../../.env"
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const UserRepository = require("../repositories/UserRepository");
+const MusicRepository = require("../repositories/MusicRepository");
+const MusicService = require("./MusicService");
 
 module.exports = {
 
@@ -36,6 +38,12 @@ module.exports = {
 
         if (!userExist)throw new Error("Usuario ja não existe");
 
+        const musicArray = await MusicRepository.findMusicsByUser(id);
+
+        for(const music of musicArray){
+            await MusicService.deleteMusic(music.id, id);
+        }
+
         await UserRepository.deleteUser(id);
     },
 
@@ -62,8 +70,9 @@ module.exports = {
         };
         await UserRepository.updateUser(updatedUser, id);
 
-        await UserRepository.updateToken(user.tokenVersion, id);
         const updatedUserData = UserRepository.findById(id)
+        await UserRepository.updateToken(updatedUserData.tokenVersion, id);
+
         const newToken = jwt.sign({
             id: updatedUserData.id,
             tokenVersion: updatedUserData.tokenVersion + 1
