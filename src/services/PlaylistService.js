@@ -5,38 +5,44 @@ module.exports = {
     async createPlaylist(playlistName, userId){
         if(playlistName.length < 2)throw new Error("Nome da playlist muito curto");
         
-        const playlist= {
+        const playlistData= {
             playlistName,
             userId
         };
 
-        const playlistNameUsed = await PlaylistRepository.findPlaylistOnUser(playlist);
+        const playlistNameUsed = await PlaylistRepository.findPlaylistOnUser(playlistData);
         if(playlistNameUsed) throw new Error("Uma playlist com mesmo nome ja existe no usuario");
 
-        await PlaylistRepository.createPlaylist(playlist);
+        const newPlaylist = await PlaylistRepository.createPlaylist(playlistData);
 
-        return playlist;
+        return {
+            id: newPlaylist.id,
+            playlistName: newPlaylist.playlistName
+        };
     },
 
     async updatePlaylist(playlistName, playlistId, userId){
 
         if(playlistName.length < 2 || !playlistName)throw new Error("Nome da playlist muito curto");
 
-        const playlist= {
+        const playlistData= {
             playlistName,
             userId
         };
 
-        const playlistNameUsed = await PlaylistRepository.findPlaylistOnUser(playlist);
-        if(playlistNameUsed) throw new Error("Uma playlist com mesmo nome ja existe no usuario");
         const playlistExist = await PlaylistRepository.findById(playlistId);
         if(!playlistExist)throw new Error("Playlist inexistente");
         if(playlistExist.userId !== userId)throw new Error("O usuario não tem permissão para esta execução");
-
+        const playlistNameUsed = await PlaylistRepository.findPlaylistOnUser(playlistData);
+        if(playlistNameUsed) throw new Error("Uma playlist com mesmo nome ja existe no usuario");
 
         await PlaylistRepository.updatePlaylist(playlistName, playlistId);
+        const updatedPlaylist = await PlaylistRepository.findById(playlistId);
 
-        return playlistName;
+        return {
+            id: updatedPlaylist.id,
+            playlistName: updatedPlaylist.playlistName
+        };
     },
 
     async deletePlaylist(playlistId, userId){
@@ -45,6 +51,8 @@ module.exports = {
         if(playlistExist.userId !== userId)throw new Error("Usuario não tem permissão para executar a deleção");
 
         await PlaylistRepository.deletePlaylist(playlistId);
+        
+        return playlistExist.playlistName;
     },
 
     async getUserPlaylists(userId){
@@ -53,6 +61,10 @@ module.exports = {
         if(playlistsArray.length <= 0)throw new Error("Nenhuma playlist encontrada para este usuario");
 
         return playlistsArray;
+    },
+
+    async findPlaylist(playlistId){
+        return PlaylistRepository.findById(playlistId);
     }
 
 };

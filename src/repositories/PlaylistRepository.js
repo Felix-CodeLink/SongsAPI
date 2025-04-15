@@ -15,7 +15,7 @@ module.exports = {
     },
 
     async updatePlaylist(playlistName, id){
-        return await Playlist.update({playlistName}, {where: {id}});
+        await Playlist.update({playlistName}, {where: {id}});
     },
 
     async deletePlaylist(id){

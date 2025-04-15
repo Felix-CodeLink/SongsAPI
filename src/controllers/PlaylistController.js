@@ -12,8 +12,12 @@ module.exports = {
 
             logger.success(
                 "PlaylistController.createPlaylist",
-                `Playlist "${playlistName}", criada com sucesso pelo usuario "${req.userId}"`);
-            res.status(200).json({message: playlist.playlistName});
+                `Playlist "${playlist.playlistName}", criada com sucesso pelo usuario de id:"${req.userId}"`);
+
+            res.status(200).json({
+                message: "Playlist criada com sucesso",
+                playlist});
+
         }catch(error){
             logger.error("PlaylistController.createPlaylist", error);
             res.status(400).json({message: error.message});
@@ -30,8 +34,13 @@ module.exports = {
 
             logger.success(
                 "PlaylistController.updatePlaylist",
-                `Playlist "${playlistId}" atualizada para "${updatedPlaylist}" por usuario "${req.userId}"`);
-            res.status(200).json({message: updatedPlaylist});
+                `Playlist de id:"${playlistId}" atualizada para `+
+                `${updatedPlaylist.playlistName}" por usuario de id:"${req.userId}"`);
+
+            res.status(200).json({
+                message: "Playlist atualizada com sucesso",
+                playlist: updatedPlaylist});
+
         }catch(error){
             logger.error("PlaylistController.updatePlaylist", error);
             res.status(400).json({message: error.message});
@@ -42,12 +51,18 @@ module.exports = {
         try{
 
             const {playlistId} = req.params;
-            await PlaylistService.deletePlaylist(playlistId, req.userId);
+            const deletedPlaylist = await PlaylistService.deletePlaylist(playlistId, req.userId);
 
             logger.success(
                 "PlaylistController.deletePlaylist",
-                `Playlist "${playlistId}" deletada com sucesso por "${req.userId}"`);
-            res.status(200).json({message: "Playlist deletada com sucesso"});
+                `Playlist de id:"${playlistId}", "${deletedPlaylist}", `+
+                `deletada com sucesso por usuario de id:"${req.userId}"`);
+
+            res.status(200).json({
+                message: `Playlist deletada com sucesso`,
+                playlistName: deletedPlaylist
+            });
+            
         }catch(error){
             logger.error("PlaylistController.deletePlaylist", error);
             res.status(400).json({message: error.message});

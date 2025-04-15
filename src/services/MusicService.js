@@ -54,9 +54,9 @@ module.exports = {
       if(!musicData) throw new Error("Musica inexistente");
       if(musicData.userId !== userId) throw new Error("Usuario não tem permissão para executar a exclusao");
 
-      fs.unlink(musicData.path, err => {
-                if (err) throw new Error("Erro ao deletar musica");
-            });
+      await fs.unlink(musicData.path.catch(() => {
+                throw new Error("Erro ao deletar musica");
+            }));
       
       await MusicRepository.deleteMusic(musicId);
 
@@ -117,6 +117,10 @@ module.exports = {
         for(const music of musicArray){
             await MusicService.deleteMusic(music.id, userId);
         }
+    },
+
+    async findMusic(musicId){
+      return MusicRepository.findById(musicId);
     }
 
 };
