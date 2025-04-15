@@ -9,7 +9,7 @@ module.exports = {
             if(!file) return res.status(400).json({message: "Arquivo de audio não enviado"});
 
             const newMusic = await MusicService.uploadMusic({
-                musicName: file.originalname,
+                musicName: req.body.musicName,
                 path: file.path,
                 userId: req.userId,
                 artistName: req.body.artistName,
@@ -38,17 +38,14 @@ module.exports = {
 
     async searchMusics(req, res){
         try{
-            const {musicName, artistName, genre} = req.body;
-            const musicData = {
-                musicName: musicName,
-                artistName: artistName,
-                genre: genre
-            };
+            const musicData = req.body;
 
             const musicsArray = await MusicService.searchMusics(musicData);
 
-            logger.success("MusicControler.search", `Musicas encontradas com sucesso. Parametros: ${JSON.stringify(musicData)}`);
-            res.status(200).json({message: musicsArray});
+            logger.success(
+                "MusicControler.search",
+                `${musicsArray.length} Musicas encontradas com sucesso. Parametros: ${JSON.stringify(musicData)}`);
+            res.status(200).json({musicsArray});
         }catch(error){
             logger.error("MusicControler.search", error);
             res.status(500).json({message: error.message});
@@ -59,10 +56,12 @@ module.exports = {
         try{
             const {musicId} = req.params;
 
-            await MusicService.deleteMusic(musicId, req.userId);
+            const deletedMusic = await MusicService.deleteMusic(musicId, req.userId);
 
-            logger.success("MusicControler.deleteMusic", `Musica de id: ${musicId} deletada por "${req.userId}`);
-            res.status(200).json({message: "Musica deletada com sucesso"});
+            logger.success(
+                "MusicControler.deleteMusic",
+                `Musica de id: ${musicId} e nome "${deletedMusic}" deletada por usuario de Id:"${req.userId}"`);
+            res.status(200).json({message: `Musica "${deletedMusic}" deletada com sucesso`});
         }catch(error){
             logger.error("MusicControler.deleteMusic", error);
             res.status(409).json({message: error.message});
@@ -74,10 +73,22 @@ module.exports = {
             const data = req.body;
             const {musicId} = req.params;
 
-            await MusicService.updateMusic(data, musicId, req.userId);
+            const updatedMusic = await MusicService.updateMusic(data, musicId, req.userId);
 
-            logger.success("MusicController.updateMusic", "Musica atualizada com sucesso");
-            res.status(200).json({message: "Musica atualizada com sucesso"});
+            logger.success(
+                "MusicController.updateMusic",
+                `Musica de id:"${updatedMusic.musicId}" atualizada para. ` +
+                `nome: "${updatedMusic.newName}". `+
+                `artist: "${updatedMusic.artistName}". `+
+                `genre: "${updatedMusic.genre}"`);
+
+            res.status(200).json({
+                message: `Musica "${updatedMusic.oldName}" atualizado com sucesso`,
+                musicId: updatedMusic.musicId,
+                musicName: updatedMusic.newName,
+                artistName: updatedMusic.artistName,
+                genre: updatedMusic.genre});
+
         }catch(error){
             logger.error("MusicControler.updateMusic", error);
             res.status(400).json({message: error.message});
@@ -101,7 +112,9 @@ module.exports = {
                 res.destroy(err);
             });
 
-            logger.success("MusicController.getMusicFile", "Arquivo de musica enviado com sucesso");
+            logger.success(
+                "MusicController.getMusicFile",
+                `Arquivo de musica de id:"${musicId}" enviado com sucesso para usuario de id:"${req.userId}"`);
         }catch(error){
             logger.error("MusicControler.getMusicFile", error);
             res.status(400).json({message: error.message});

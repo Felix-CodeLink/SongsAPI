@@ -23,11 +23,11 @@ const UserRepository = {
     },
 
     async updateToken(tokenVersion, id){
-        await User.update({tokenVersion: tokenVersion + 1}, {where: {id: id}});
+        return await User.update({tokenVersion: tokenVersion + 1}, {where: {id: id}});
     },
 
     async updateUser(data, id){
-        return await User.update(data, {where: {id}});
+        await User.update(data, {where: {id}});
     }
 };
 

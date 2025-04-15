@@ -8,6 +8,9 @@ const MusicService = require("./MusicService");
 module.exports = {
 
     async createUser({ username, email, password}){
+        if(username.length < 2)throw new Error("Nome de usuario muito curto");
+        if(password.length < 6)throw new Error("Senha muito curta");
+
         const userExistName = await UserRepository.findByUsername(username);
         if(userExistName){
             throw new Error("Este username ja esta em uso.");
@@ -38,12 +41,14 @@ module.exports = {
         if (!userExist)throw new Error("Usuario ja não existe");
 
         await MusicService.deleteMusicsByUserId(id);
-
         await UserRepository.deleteUser(id);
+
+        return userExist.username;
     },
 
     async updateUser(data, id){
-        const user = await UserRepository.findById(id);
+        if(data.username && data.username.length < 2)throw new Error("Nome de usuario muito curto");
+        if(data.password && data.password.length < 6)throw new Error("Senha muito curta");
         
         if(data.username){
             const userExistName = await UserRepository.findByUsername(data.username);
@@ -55,23 +60,31 @@ module.exports = {
             if(userExistEmail && userExistEmail.id !== id) throw new Error("email ja em uso");
         }
 
+        const user = await UserRepository.findById(id);
+
         let passwordHash = user.password
         if(data.password) passwordHash = await bcrypt.hash(data.password, 10);
 
-        const updatedUser = {
+        const updateUserData = {
             username: data.username || user.username,
             email: data.email || user.email,
             password: passwordHash
         };
-        await UserRepository.updateUser(updatedUser, id);
+        await UserRepository.updateUser(updateUserData, id);
 
-        const updatedUserData = UserRepository.findById(id)
-        await UserRepository.updateToken(updatedUserData.tokenVersion, id);
+        const updatedUser = await UserRepository.findById(id);
+        await UserRepository.updateToken(updatedUser.tokenVersion, updatedUser.id);
 
         const newToken = jwt.sign({
-            id: updatedUserData.id,
-            tokenVersion: updatedUserData.tokenVersion + 1
+            id: updatedUser.id,
+            tokenVersion: updatedUser.tokenVersion + 1
         }, process.env.JWT_SECRET, {expiresIn: "1d"});
-        return newToken
+        
+        return {
+            oldName: user.username,
+            newName: updatedUser.username,
+            email: updatedUser.email,
+            newToken: newToken
+        }
     }
 };
