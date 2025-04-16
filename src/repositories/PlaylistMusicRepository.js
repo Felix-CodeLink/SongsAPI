@@ -6,5 +6,11 @@ module.exports = {
     },
     async musicInPlaylist(playlistId, musicId){
         return await PlaylistMusic.findOne({where: {playlistId, musicId}});
+    },
+    async findMusicsByPlaylist(playlistId){
+        return await PlaylistMusic.findAll({where: {playlistId}, attributes: ["musicId"]});
+    },
+    async removeMusic(playlistId, musicId){
+        await PlaylistMusic.destroy({where: {playlistId, musicId}});
     }
 };

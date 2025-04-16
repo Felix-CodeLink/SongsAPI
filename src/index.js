@@ -14,8 +14,8 @@ app.use("/music", MusicRoutes);
 const PlaylistRoutes = require("./routes/PlaylistRoutes.js");
 app.use("/playlist", PlaylistRoutes);
 
-const PlaylistMusicsRoutes = require("./routes/PlaylistMusicsRoutes.js");
-app.use("/playlistMusics", PlaylistMusicsRoutes);
+const PlaylistMusicRoutes = require("./routes/PlaylistMusicRoutes.js");
+app.use("/playlistMusics", PlaylistMusicRoutes);
 
 const PORT = 5018;
 
