@@ -17,6 +17,8 @@ module.exports = {
         Validator.validateRequireField(password, "Senha");
         Validator.validateFieldLength(password, 6, "Senha");
 
+        Validator.validateEmail(email);
+
         const userExistName = await UserRepository.findByUsername(username);
         Validator.validateIfExist(userExistName, "Usuario");
         
@@ -50,15 +52,16 @@ module.exports = {
     async updateUser(data, id){
         if(data.username)Validator.validateFieldLength(data.username, 2, "Usuario");
         if(data.password) Validator.validateFieldLength(data.password, 6, "Senha");
+        if(data.email) Validator.validateEmail(data.email);
         
         if(data.username){
             const userExistName = await UserRepository.findByUsername(data.username);
-            if(userExistName.id !== id) Validator.validateIfExist(userExistName, "Usuario");
+            if(userExistName && userExistName.id !== id) Validator.validateIfExist(userExistName, "Usuario");
         }
 
         if(data.email){
             const userExistEmail = await UserRepository.findByEmail(data.email);
-            if(userExistEmail.id !== id) Validator.validateIfExist(userExistEmail, "Email");
+            if(userExistEmail && userExistEmail.id !== id) Validator.validateIfExist(userExistEmail, "Email");
         }
 
         const user = await UserRepository.findById(id);
@@ -87,7 +90,8 @@ module.exports = {
     },
 
     generateNewToken(userId, tokenVersion){
-        jwt.sign({
+        
+        return jwt.sign({
             id: userId,
             tokenVersion: tokenVersion + 1
         }, process.env.JWT_SECRET, {expiresIn: "1d"});

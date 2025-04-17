@@ -1,6 +1,7 @@
 const ErrorCodes = require("../constants/errorCodes");
 const ErrorApp = require("../utils/errorApp");
 const GENRES = require("../constants/genres");
+const emailValidator = require("validator");
 
 module.exports = {
     validateRequireField(field, fieldName = "Campo") {
@@ -85,6 +86,16 @@ module.exports = {
                 "Genero de musica invalido.",
                 400,
                 ErrorCodes.INVALID_GENRE
+            );
+        }
+    },
+
+    validateEmail(email){
+        if(!emailValidator.isEmail(email)){
+            throw new ErrorApp(
+                "Email invalido.",
+                400,
+                ErrorCodes.INVALID_DATA
             );
         }
     }
