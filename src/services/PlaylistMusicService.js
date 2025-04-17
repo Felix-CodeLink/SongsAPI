@@ -1,79 +1,207 @@
 const PlaylistMusicRepository = require("../repositories/PlaylistMusicRepository");
 const PlaylistService = require("./PlaylistService");
 const MusicService = require("./MusicService");
-const { removeMusics } = require("../controllers/PlaylistMusicController");
+const ErrorApp = require("../utils/errorApp");
+const ErrorCodes = require("../constants/errorCodes");
 
 module.exports = {
     async addMusics(musicIds, playlistId, userId){
-        if(!musicIds.length || !Array.isArray(musicIds))throw new Error("Nenhuma musica para adicionar");
+        if(musicIds.length === 0 || !Array.isArray(musicIds)){
+            throw new ErrorApp(
+                "Lista de musicas invalida",
+                400,
+                ErrorCodes.INVALID_DATA
+            );
+        }
 
         const playlist = await PlaylistService.findPlaylist(playlistId);
-        if(!playlist)throw new Error("Playlist Inexistente");
-        if(playlist.userId !== userId)throw new Error("Usuario não tem permissão para esta execução");
-
-        const musicsErrorArray = [];
-
-        for(const musicId of musicIds){
-            const musicExist = await MusicService.findMusic(musicId);
-            const musicInPlaylist = await PlaylistMusicRepository.musicInPlaylist(playlistId, musicId);
-            if(musicExist && !musicInPlaylist){
-                const data = {
-                    playlistId,
-                    musicId
-                }
-                await PlaylistMusicRepository.addMusic(data);
-            } else{
-                musicsErrorArray.push(musicId);
-            }
+        if(!playlist){
+            throw new ErrorApp(
+                "Playlist não encontrada",
+                404,
+                ErrorCodes.PLAYLIST_NOT_FOUND
+            );
+        }
+        if(playlist.userId !== userId){
+            throw new ErrorApp(
+                "Usuario não autorizado",
+                403,
+                ErrorCodes.UNAUTHORIZED_ACTION
+            );
         }
 
-        if(musicsErrorArray.length === musicIds.length)throw new Error("Todas as musicas foram rejeitadas");
-        return musicsErrorArray;
+        const results = await Promise.allSettled(
+            musicIds.map(async (musicId) =>{
+                const musicExist = await MusicService.findMusic(musicId);
+                const musicInPlaylist = await PlaylistMusicRepository.findMusicInPlaylist(playlistId, musicId);
+
+                if(musicExist && !musicInPlaylist){
+                    
+                    const data = {playlistId,musicId};
+                    await PlaylistMusicRepository.addMusic(data);
+
+                    return {
+                        status: "success",
+                        musicId: musicExist.id,
+                        musicName: musicExist.musicName};
+                } else{
+                    return {
+                        status: "fail",
+                        musicId: musicId,
+                        error: musicExist? "Ja esta na Playlist":"Musica não existe"};
+                }
+            }));
+
+            const musicCheck = {success: [], fail: []}
+
+            for(const result of results){
+                if(result.status === "fulfilled"){
+                    if(result.value.status === "success"){
+                        musicCheck.success.push(result.value);
+                    } else{
+                        musicCheck.fail.push(result.value);
+                    }
+                } else{
+                    console.error("Erro interno:", result.reason);
+                    musicCheck.fail.push({musicId: null, error: result.reason.message});
+                }
+            }
+
+        return musicCheck;
     },
     async getMusics(playlistId, userId){
-        const playlistExist = await PlaylistService.findPlaylist(playlistId);
-        if(!playlistExist)throw new Error("Playlist Inexistente");
-        if(playlistExist.userId !== userId)throw new Error("Usuario não tem permissão para esta execução");
 
-        const response = [];
+        const playlistExist = await PlaylistService.findPlaylist(playlistId);
+        if(!playlistExist){
+            throw new ErrorApp(
+                "Playlist não encontrada",
+                404,
+                ErrorCodes.PLAYLIST_NOT_FOUND
+            );
+        }
+        if(playlistExist.userId !== userId){
+            throw new ErrorApp(
+                "Usuario não autorizado",
+                403,
+                ErrorCodes.UNAUTHORIZED_ACTION
+            );
+        }
 
         const playlistMusics = await PlaylistMusicRepository.findMusicsByPlaylist(playlistId);
-        if(!playlistMusics.length)throw new Error("Playlist Vazia");
+        if(playlistMusics.length === 0){
+            throw new ErrorApp(
+                "Playlist Vazia",
+                400,
+                ErrorCodes.EMPTY_PLAYLIST
+            );
+        }
 
-        for(const music of playlistMusics){
-            const musicExist = await MusicService.findMusic(music.musicId);
+        const results = await Promise.allSettled(
+            playlistMusics.map( async (music) => {
+                const musicExist = await MusicService.findMusic(music.musicId);
+                if(musicExist){
+                    return {
+                        status: "success",
+                        musicId: musicExist.id,
+                        musicName: musicExist.musicName,
+                        artistName: musicExist.artistName,
+                        genre: musicExist.genre
+                    }
+                } else{
+                    return {
+                        status: "fail",
+                        musicId: music.musicId,
+                    }
+                }
+            })
+        );
 
-            if(musicExist){
+        const musicCheck = {
+            success: [],
+            fail: []
+        };
 
-                response.push({
-                    musicId: music.musicId,
-                    musicName: musicExist.musicName,
-                    artistName: musicExist.artistName,
-                    genre: musicExist.genre
-                });
-
+        for(const result of results){
+            if(result.status === "fulfilled"){
+                if(result.value.status === "success"){
+                    musicCheck.success.push(result.value);
+                } else{
+                    musicCheck.fail.push(result.value);
+                }
+            } else{
+                console.error("Erro interno:", result.reason);
+                musicCheck.fail.push({musicId: null, error: result.reason.message});
             }
         }
-        return response;
+
+        return musicCheck;
     },
 
     async removeMusics(musicsToRemove, playlistId, userId){
-        if(!Array.isArray(musicsToRemove) || !musicsToRemove)throw new Error("Nenhuma musica para remover");
+        if(!Array.isArray(musicsToRemove) || !musicsToRemove){
+            throw new ErrorApp(
+                "Lista de musicas invalida",
+                400,
+                ErrorCodes.INVALID_DATA
+            );
+        }
 
         const playlistExist = await PlaylistService.findPlaylist(playlistId);
-        if(!playlistExist)throw new Error("Playlist Inexistente");
-        if(playlistExist.userId !== userId)throw new Error("Usuario não tem permissão para esta execução");
+        if(!playlistExist){
+            throw new ErrorApp(
+                "Playlist não encontrada.",
+                404,
+                ErrorCodes.PLAYLIST_NOT_FOUND
+            );
+        }
+        if(playlistExist.userId !== userId){
+            throw new ErrorApp(
+                "Usuario não autorizado.",
+                403,
+                ErrorCodes.UNAUTHORIZED_ACTION
+            );
+        }
 
-        const deletedMusics = [];
+        const results = await Promise.allSettled(
+            musicsToRemove.map(async (music) => {
+                
+                const musicExist = await MusicService.findMusic(music);
+                const musicInPlaylist = await PlaylistMusicRepository.findMusicInPlaylist(playlistId, music);
+                if(musicExist && musicInPlaylist){
+                    await PlaylistMusicRepository.deleteMusic(playlistId, music)
+                    return {
+                        status: "success",
+                        musicId: musicExist.id,
+                        musicName: musicExist.musicName
+                    };
+                } else{
+                    return {
+                        status: "fail",
+                        musicId: music,
+                        error: musicExist? "Não esta na Playlist":"Musica não existe"
+                    };
+                }
+            })
+        );
 
-        for(const musicId of musicsToRemove){
-            const musicOnPlaylist = await PlaylistMusicRepository.musicInPlaylist(playlistId, musicId);
-            if(musicOnPlaylist){
-                await PlaylistMusicRepository.removeMusic(playlistId, musicId);
-                deletedMusics.push(musicId);
+        const musicCheck = {
+            success: [],
+            fail: []
+        }
+
+        for(const result of results){
+            if(result.status === "fulfilled"){
+                if(result.value.status === "success"){
+                    musicCheck.success.push(result.value);
+                }else{
+                    musicCheck.fail.push(result.value);
+                }
+            } else{
+                console.error("Erro interno:", result.reason);
+                musicCheck.fail.push({musicId: null, error: result.reason.message});
             }
         }
         
-        return deletedMusics;
+        return musicCheck;
     }
 };

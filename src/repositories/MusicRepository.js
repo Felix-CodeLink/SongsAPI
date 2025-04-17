@@ -14,7 +14,7 @@ const MusicRepository = {
     },
 
     async findById(id){
-        return await Music.findOne({where: {id}, attributes: ["userId", "musicName", "path", "artistName", "genre"]});
+        return await Music.findOne({where: {id}, attributes: ["id", "userId", "musicName", "path", "artistName", "genre"]});
     },
 
     async deleteMusic(id){
@@ -25,8 +25,8 @@ const MusicRepository = {
         return await Music.update(data, {where: {id}});
     },
 
-    async findMusicsByUser(userId){
-        return await Music.findAll({where: {userId}, attributes: ["id"]});
+    async findMusicsPathByUser(userId){
+        return await Music.findAll({where: {userId}, attributes: ["id","musicName","path"]});
     }
 };
 

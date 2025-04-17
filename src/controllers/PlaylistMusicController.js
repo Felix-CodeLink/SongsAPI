@@ -7,21 +7,30 @@ module.exports = {
             const {playlistId} = req.params;
             const musicIds = req.body.musicIds;
 
-            const response = await PlaylistMusicService.addMusics(musicIds, playlistId, req.userId);
+            const musicCheck = await PlaylistMusicService.addMusics(musicIds, playlistId, req.userId);
 
             logger.success(
                 "PlaylistMusics.addMusics",
-                `Musicas adicionadas com sucesso na playlist id:${playlistId}. `+
-                `Falhas de upload ${response.length}`
+                `Usuario de id: ${req.userId}, Playlist de id: ${playlistId}.\n`+
+                `Musicas totais: ${musicIds.length}.\n`+
+                `Sucessos: \n${musicCheck.success.map( M => JSON.stringify(M, null, 2)).join("\n\n")}\n`+
+                `Falhas: \n${musicCheck.fail.map( M => JSON.stringify(M, null, 2)).join("\n\n")}.`
             );
-            res.status(200).json({
-                message: "Musicas adicionadas com sucesso",
-                errors: response
+            res.status(207).json({
+                status: "success",
+                message: `${musicCheck.success.length} musicas adicionadas com sucesso.`,
+                data: musicCheck
             });
 
         }catch(error){
             logger.error("PlaylistMusics.addMusics", error);
-            res.status(400).json({message: error.message});
+
+            res.status(error.status || 400).
+                json({
+                    status: "error",
+                    message: error.message || "Erro interno do servidor",
+                    code: error.code || "INTERNAL_ERROR"}
+                );
         }
     },
 
@@ -29,18 +38,29 @@ module.exports = {
         try{
 
             const {playlistId} = req.params;
-            const musicsArray = await PlaylistMusicService.getMusics(playlistId, req.userId);
+            const musicCheck = await PlaylistMusicService.getMusics(playlistId, req.userId);
 
             logger.success(
                 "PlaylistMusics.getMusics",
-                `Usuario de id:${req.userId} deu get na playlist de id:${playlistId}. `+
-                `E retornou as musicas de Id:${musicsArray}`
+                `Usuario de id:${req.userId}, Playlist de id:${playlistId}.\n`+
+                `Musicas Totais: ${musicCheck.success.length}.\n`+
+                `Sucessos:\n${musicCheck.success.map(M => JSON.stringify(M, null, 2)).join("\n\n")}\n`+
+                `Falhas:\n${musicCheck.fail.map(M => JSON.stringify(M, null, 2)).join("\n\n")}`
             );
-            res.status(200).json({Musics: musicsArray});
+            res.status(200).json({
+                status: "success",
+                message: `${musicCheck.success.length} musicas retornadas com sucesso.`,
+                data: musicCheck
+            });
 
         }catch(error){
             logger.error("PlaylistMusics.getMusics", error);
-            res.status(400).json({message: error.message});
+            res.status(error.status || 400).
+                json({
+                    status: "error",
+                    message: error.message || "Erro interno do servidor",
+                    code: error.code || "INTERNAL_ERROR"}
+                );
         }
     },
 
@@ -49,18 +69,29 @@ module.exports = {
             const musicsToRemove = req.body.musicIds;
             const {playlistId} = req.params;
 
-            const response = await PlaylistMusicService.removeMusics(musicsToRemove, playlistId, req.userId);
+            const musicCheck = await PlaylistMusicService.removeMusics(musicsToRemove, playlistId, req.userId);
 
             logger.success(
                 "PlaylistMusics.removeMusics",
-                `Usuario de id:${req.userId} deu removeu da playlist de id:${playlistId}. `+
-                `E removeu mas musicas de id: ${response}`
+                `Usuario de id:${req.userId}, Playlist de id:${playlistId}.\n`+
+                `Musicas totais: ${musicsToRemove.length}.\n`+
+                `Sucessos:\n${musicCheck.success.map(M => JSON.stringify(M, null, 2)).join("\n\n")}.\n`+
+                `Falhas:\n${musicCheck.fail.map(M => JSON.stringify(M, null, 2)).join("\n\n")}.`
             );
-            res.status(200).json({Musics: response});
+            res.status(200).json({
+                status: "success",
+                message: `${musicCheck.success.length} musicas removidas com sucesso`,
+                data: musicCheck
+            });
 
         }catch(error){
             logger.error("PlaylistMusics.removeMusics", error);
-            res.status(400).json({message: error.message});
+            res.status(error.status || 400).
+            json({
+                status: "error",
+                message: error.message || "Erro interno do servidor",
+                code: error.code || "INTERNAL_ERROR"}
+            );
         }
     }
 };

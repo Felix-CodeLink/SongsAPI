@@ -4,21 +4,43 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const UserRepository = require("../repositories/UserRepository");
 const MusicService = require("./MusicService");
+const ErrorApp = require("../utils/errorApp");
+const ErrorCodes = require("../constants/errorCodes");
 
 module.exports = {
 
     async createUser({ username, email, password}){
-        if(username.length < 2)throw new Error("Nome de usuario muito curto");
-        if(password.length < 6)throw new Error("Senha muito curta");
+        if(username.length < 2){
+            throw new ErrorApp(
+                "Nome de usuario muito curto.",
+                400,
+                ErrorCodes.INVALID_NAME
+            );
+        }
+        if(password.length < 6){
+            throw new ErrorApp(
+                "Senha muito curto.",
+                400,
+                ErrorCodes.INVALID_DATA
+            );
+        }
 
         const userExistName = await UserRepository.findByUsername(username);
         if(userExistName){
-            throw new Error("Este username ja esta em uso.");
+            throw new ErrorApp(
+                "Nome de usuario ja em uso.",
+                400,
+                ErrorCodes.INVALID_NAME
+            );
         }
         
         const userExistEmail = await UserRepository.findByEmail(email);
         if(userExistEmail){
-            throw new Error("Este email ja esta em uso.");
+            throw new ErrorApp(
+                "Email ja em uso.",
+                400,
+                ErrorCodes.INVALID_DATA
+            );
         }
 
         const passwordHash = await bcrypt.hash(password, 10);
@@ -30,6 +52,7 @@ module.exports = {
         });
 
         return {
+            id: newUser.id,
             username: newUser.username,
             email: newUser.email
         };
@@ -38,26 +61,54 @@ module.exports = {
     async deleteUserByToken(id){
         const userExist = await UserRepository.findById(id)
 
-        if (!userExist)throw new Error("Usuario ja não existe");
+        if (!userExist){
+            throw new ErrorApp(
+                "Usuario não encontrado.",
+                404,
+                ErrorCodes.USER_NOT_FOUND
+            );
+        }
 
         await MusicService.deleteMusicsByUserId(id);
         await UserRepository.deleteUser(id);
-
-        return userExist.username;
     },
 
     async updateUser(data, id){
-        if(data.username && data.username.length < 2)throw new Error("Nome de usuario muito curto");
-        if(data.password && data.password.length < 6)throw new Error("Senha muito curta");
+        if(data.username && data.username.length < 2){
+            throw new ErrorApp(
+                "Nome de usuario muito curto.",
+                400,
+                ErrorCodes.INVALID_NAME
+            );
+        }
+        if(data.password && data.password.length < 6){
+            throw new ErrorApp(
+                "Senha muito curta.",
+                400,
+                ErrorCodes.INVALID_DATA
+            );
+        }
         
         if(data.username){
             const userExistName = await UserRepository.findByUsername(data.username);
-            if(userExistName && userExistName.id !== id) throw new Error("Usuario ja em uso");
+            if(userExistName && userExistName.id !== id){
+                throw new ErrorApp(
+                    "Nome de usuario ja em uso.",
+                    400,
+                    ErrorCodes.INVALID_NAME
+                );
+            }
         }
 
         if(data.email){
             const userExistEmail = await UserRepository.findByEmail(data.email);
-            if(userExistEmail && userExistEmail.id !== id) throw new Error("email ja em uso");
+            if(userExistEmail && userExistEmail.id !== id){
+                throw new ErrorApp(
+                    "Email ja em uso.",
+                    400,
+                    ErrorCodes.INVALID_DATA
+                );
+            }
         }
 
         const user = await UserRepository.findById(id);

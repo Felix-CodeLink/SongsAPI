@@ -6,18 +6,28 @@ module.exports = {
     async uploadMusic(req, res){
         try{
             const file = req.file;
-            if(!file) return res.status(400).json({message: "Arquivo de audio não enviado"});
 
-            const newMusic = await MusicService.uploadMusic({
+            const uploadData = {
+                userId: req.userId,
                 musicName: req.body.musicName,
                 path: file.path,
-                userId: req.userId,
                 artistName: req.body.artistName,
                 genre: req.body.genre.toLowerCase()
-            });
+            };
 
-            logger.success("MusicControler.update", `Musica ${file.originalname} salva`);
-            res.status(201).json({message: "Arquivo salvo com sucesso", newMusic});
+            const music = await MusicService.uploadMusic(uploadData,file);
+
+            logger.success(
+                "MusicControler.upload",
+                `Usuario de id:${req.userId}".\n`+
+                `UploadData: ${JSON.stringify(uploadData, null, 2)}\n`+
+                `MusicData: ${JSON.stringify(music, null, 2)}\n`
+            );
+            res.status(201).json({
+                status: "success",
+                message: "Upload do arquivo feito com sucesso.",
+                data: music
+            });
 
         }catch(error) {
             logger.error("MusicControler.upload ", error);
@@ -32,7 +42,12 @@ module.exports = {
                 });
             }
 
-            res.status(500).json({message: error.message});
+            res.status(error.status || 400).
+            json({
+                status: "error",
+                message: error.message || "Erro interno do servidor",
+                code: error.code || "INTERNAL_ERROR"}
+            );
         }
     },
 
@@ -44,11 +59,23 @@ module.exports = {
 
             logger.success(
                 "MusicControler.search",
-                `${musicsArray.length} Musicas encontradas com sucesso. Parametros: ${JSON.stringify(musicData)}`);
-            res.status(200).json({musicsArray});
+                `Usuario de id: ${req.userId}.\n`+
+                `Parametros:\n${JSON.stringify(musicData, null, 2)}.\n`+
+                `Quantidade de musicas encontradas: ${musicsArray.length}.\n`
+            );
+            res.status(200).json({
+                status: "success",
+                message: `${musicsArray.length} musicas encontradas`,
+                data: musicsArray
+            });
         }catch(error){
             logger.error("MusicControler.search", error);
-            res.status(500).json({message: error.message});
+            res.status(error.status || 400).
+            json({
+                status: "error",
+                message: error.message || "Erro interno do servidor",
+                code: error.code || "INTERNAL_ERROR"}
+            );
         }
     },
 
@@ -60,11 +87,23 @@ module.exports = {
 
             logger.success(
                 "MusicControler.deleteMusic",
-                `Musica de id: ${musicId} e nome "${deletedMusic}" deletada por usuario de Id:"${req.userId}"`);
-            res.status(200).json({message: `Musica "${deletedMusic}" deletada com sucesso`});
+                `Usuario de id:${req.userId}, Musica de id:${musicId}.\n`+
+                `Musica eliminada com sucesso. Nome: "${deletedMusic}"`
+            );
+
+            res.status(203).json({
+                status: "success",
+                message: `${deletedMusic} deletada com sucesso`
+            });
+
         }catch(error){
             logger.error("MusicControler.deleteMusic", error);
-            res.status(409).json({message: error.message});
+            res.status(error.status || 400).
+            json({
+                status: "error",
+                message: error.message || "Erro interno do servidor",
+                code: error.code || "INTERNAL_ERROR"}
+            );
         }
     },
 
@@ -77,21 +116,24 @@ module.exports = {
 
             logger.success(
                 "MusicController.updateMusic",
-                `Musica de id:"${updatedMusic.musicId}" atualizada para. ` +
-                `nome: "${updatedMusic.newName}". `+
-                `artist: "${updatedMusic.artistName}". `+
-                `genre: "${updatedMusic.genre}"`);
+                `Usuario de id:${req.userId}, Musica de id:${musicId}.\n`+
+                `Atualizado para:\n ${JSON.stringify(updatedMusic, null, 2)}\n`
+            );
 
             res.status(200).json({
-                message: `Musica "${updatedMusic.oldName}" atualizado com sucesso`,
-                musicId: updatedMusic.musicId,
-                musicName: updatedMusic.newName,
-                artistName: updatedMusic.artistName,
-                genre: updatedMusic.genre});
+                status: "success",
+                message: "Musica atualizada com sucesso.",
+                data: updatedMusic
+            });
 
         }catch(error){
             logger.error("MusicControler.updateMusic", error);
-            res.status(400).json({message: error.message});
+            res.status(error.status || 400).
+            json({
+                status: "error",
+                message: error.message || "Erro interno do servidor",
+                code: error.code || "INTERNAL_ERROR"}
+            );
         }
     },
 
@@ -114,10 +156,18 @@ module.exports = {
 
             logger.success(
                 "MusicController.getMusicFile",
-                `Arquivo de musica de id:"${musicId}" enviado com sucesso para usuario de id:"${req.userId}"`);
+                `Usuario de id:${req.userId}, Musica de id:${musicId}.\n`+
+                `Enviado com sucesso para usuario de id:"${req.userId}"`
+            );
         }catch(error){
-            logger.error("MusicControler.getMusicFile", error);
-            res.status(400).json({message: error.message});
+            logger.error("MusicController.getMusicFile", error);
+
+            res.status(error.status || 400).
+                json({
+                    status: "error",
+                    message: error.message || "Erro interno do servidor",
+                    code: error.code || "INTERNAL_ERROR"}
+                );
         }
     }
 };

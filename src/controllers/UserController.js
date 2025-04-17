@@ -8,27 +8,48 @@ module.exports = {
             const {username, email, password} = req.body;
             const newUser = await UserService.createUser({username, email, password});
 
-            logger.success("UserControler.signUp", `Usuario "${newUser.username}" criado com sucesso`);
-            res.status(201).json(newUser);
+            logger.success(
+                "UserControler.signUp",
+                `Usuario, "${username}", cadastrado com sucesso.\n`+
+                `Data:\n${JSON.stringify(newUser, null, 2)}`
+            );
+            res.status(201).json({
+                status: "success",
+                message:`Usuario, "${username}", cadastrado com sucesso.`,
+                data: {username: newUser.username, email: newUser.email}
+            });
 
         } catch(error){
-            logger.error("UserControler.signUp", error);
-            res.status(400).json({ message: error.message});
+            const body = {username: req.body.username, email: req.body.email};
+            logger.error("UserControler.signUp", error, null, body);
+            res.status(error.status || 400).json({
+                status: "error",
+                message: error.message || "Erro interno do servidor.",
+                code: error.code || "INTERNAL_ERROR"
+            });
         }
     },
 
     async deleteUser(req, res){
         try{
-            const user = await UserService.deleteUserByToken(req.userId);
+            await UserService.deleteUserByToken(req.userId);
 
             logger.success(
                 "UserControler.delete",
-                `Usuario "${user}" de id ${req.userId} foi deletado com sucesso`);
-            res.status(200).json({message: `Usuario "${user}" deletado com sucesso`});
+                `Usuario de id:${req.userId} foi deletado`);
+
+            res.status(203).json({
+                status: "success",
+                message: `Usuario deletado com sucesso.`
+            });
 
         } catch(error){
-            logger.error("UserControler.delete", error);
-            res.status(409).json({ message: error.message});
+            logger.error("UserControler.delete", error, req.userId);
+            res.status(error.status || 400).json({
+                status: "error",
+                message: error.message || "Erro interno do servidor.",
+                code: error.code || "INTERNAL_ERROR"
+            });
         }
     },
 
@@ -40,18 +61,25 @@ module.exports = {
 
             logger.success(
                 "UserControler.update",
-                `Usuario de id:${req.userId} atualizado de "${updatedUser.oldName} "` +
-                `para "${updatedUser.newName}" de email atual "${updatedUser.email}"com sucesso`);
+                `Usuario de id:${req.userId} foi atualizado.\n`+
+                `Update Data:\n${JSON.stringify(updatedUser, ["oldName", "newName", "email"], 2)}\n`
+            );
 
             res.status(200).json({
-                message: `Usuario "${updatedUser.oldName}" atualizado com sucesso`,
-                username: updatedUser.newName,
-                email: updatedUser.email,
-                token: updatedUser.newToken});
+                status: "success",
+                message: "Usuario atualizado com sucesso.",
+                data: updatedUser
+            });
 
         } catch(error){
-            logger.error("UserControler.update", error);
-            res.status(409).json({message: error.message});
+            const body = {username: req.body.username, email: req.body.email};
+            logger.error("UserControler.update", error, req.userId, body);
+
+            res.status(error.status || 400).json({
+                status: "error",
+                message: error.message || "Erro interno do servidor.",
+                code: error.code || "INTERNAL_ERROR"
+            });
         }
     }
 };

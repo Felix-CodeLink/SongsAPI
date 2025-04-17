@@ -1,12 +1,20 @@
 const jwt = require("jsonwebtoken");
 const {secret} = require("../config/auth");
-const user = require("../models/user");
 const UserRepository = require("../repositories/UserRepository");
+
+const logger = require("../utils/logger");
+const ErrorApp = require("../utils/errorApp");
+const ErrorCodes = require("../constants/errorCodes");
 
 module.exports = async (req, res, next) => {
     const authHeader = req.headers["authorization"];
 
-    if(!authHeader) return res.status(401).json({error: "Token não fornecido"});
+    if(!authHeader || !authHeader.startsWith("Bearer ")) {
+        throw new ErrorApp(
+            "Token não fornecido, ou mal formado.",
+            401
+        );
+    }
 
     const [, token] = authHeader.split(" ");
 
@@ -16,16 +24,28 @@ module.exports = async (req, res, next) => {
         req.userId = decoded.id;
 
         if (!user){
-            return res.status(401).json({message: "Usuario não encontrado"})
+            throw new ErrorApp(
+                "Usuario não encontrado",
+                401
+            );
         }
 
         if(decoded.tokenVersion !== user.tokenVersion){
-            return res.status(401).json({message: "Token expirado ou invalido"})
+            throw new ErrorApp(
+                "Token expirado ou invalido.",
+                401
+            );
         }
         
         return next();
     }catch(error){
-        console.log(error);
-        return res.status(401).json({error: "Token Invalido"});
+        logger.error(
+            "authMiddleware",error
+        );
+        return res.status(error.status || 401).json({
+            status: "error",
+            message: "Não autorizado",
+            code: ErrorCodes.UNAUTHORIZED_ACTION
+        });
     }
 };
