@@ -5,48 +5,24 @@ const fs = require("fs").promises;
 const mime = require("mime-types");
 const ErrorApp = require("../utils/errorApp");
 const ErrorCodes = require("../constants/errorCodes");
+const Validator = require("../utils/validator");
 
 module.exports = {
 
     async uploadMusic(data, file){
+      Validator.validateRequireField(file, "Arquivo");
 
-      if(!file){
-        throw new ErrorApp(
-          "Arquivo de audio não enviado",
-          400,
-          ErrorCodes.INVALID_DATA
-        );
-      }
-      if(data.musicName.length < 2){
-        throw new ErrorApp(
-          "Nome da musica muito curto.",
-          400,
-          ErrorCodes.INVALID_NAME
-        );
-      }
-      if(data.artistName.length < 2){
-        throw new ErrorApp(
-          "Nome do artista muito curto.",
-          400,
-          ErrorCodes.INVALID_NAME
-        );
-      }
-      if(!GENRES.includes(data.genre.toLowerCase())){
-        throw new ErrorApp(
-          "Genero de musica invalido.",
-          400,
-          ErrorCodes.INVALID_GENRE
-        );
-      }
+      Validator.validateRequireField(data.musicName, "Musica");
+      Validator.validateFieldLength(data.musicName, 2, "Musica");
+
+      Validator.validateRequireField(data.artistName, "Artista");
+      Validator.validateFieldLength(data.artistName, 2, "Artista");
+
+      Validator.validateRequireField(data.genre, "Genero");
+      Validator.validateGenre(data.genre);
 
       const existFileName = await MusicRepository.findByName(data.musicName);
-      if(existFileName){
-        throw new ErrorApp(
-          "Nome de musica em uso.",
-          400,
-          ErrorCodes.INVALID_NAME
-        );
-      }
+      Validator.validateIfExist(existFileName, "Musica")
 
       const newMusic = await MusicRepository.createMusic(data);
 
@@ -60,13 +36,7 @@ module.exports = {
 
     async searchMusics(data){
 
-      if(data.genre && !GENRES.includes(data.genre.toLowerCase())){
-        throw new ErrorApp(
-          "Genero de musica invalido.",
-          400,
-          ErrorCodes.INVALID_GENRE
-        );
-      }
+      if(data.genre) Validator.validateGenre(data.genre);
 
       let where = {};
 
@@ -81,33 +51,15 @@ module.exports = {
       }
 
       const musicsArray = await MusicRepository.searchMusics(where);
-      if(musicsArray.length === 0){
-        throw new ErrorApp(
-          "Nenhuma musica encontrada",
-          404,
-          ErrorCodes.MUSIC_NOT_FOUND
-        );
-      }
+      Validator.validateArrayLength(musicsArray, 1, "Musicas");
       
       return musicsArray;
     },
 
     async deleteMusic(musicId, userId){
       const musicData = await MusicRepository.findById(musicId);
-      if(!musicData){
-        throw new ErrorApp(
-          "Musica não existe.",
-          404,
-          ErrorCodes.MUSIC_NOT_FOUND
-        );
-      }
-      if(musicData.userId !== userId){
-        throw new ErrorApp(
-          "Usuario não autorizado",
-          403,
-          ErrorCodes.UNAUTHORIZED_ACTION
-        );
-      }
+      Validator.validateNonExistence(musicData, "Musica");
+      Validator.validateUserAutorization(musicData.userId, userId);
 
       await fs.unlink(musicData.path);
       
@@ -118,52 +70,16 @@ module.exports = {
 
     async updateMusic(data, musicId, userId){
 
-      if(data.musicName && data.musicName.length < 2){
-        throw new ErrorApp(
-          "Nome de musica muito curto.",
-          400,
-          ErrorCodes.INVALID_NAME
-        );
-      }
-      if(data.artistName && data.artistName.length < 2){
-        throw new ErrorApp(
-          "Nome do artista muito curto.",
-          400,
-          ErrorCodes.INVALID_NAME
-        );
-      }
-      if(data.genre && !GENRES.includes(data.genre.toLowerCase())){
-        throw new ErrorApp(
-          "Genero de musica invalido.",
-          400,
-          ErrorCodes.INVALID_GENRE
-        );
-      }
+      if(data.musicName) Validator.validateFieldLength(data.musicName, 2, "Musica");
+      if(data.artistName)  Validator.validateFieldLength(data.artistName, 2, "Artista");
+      if(data.genre) Validator.validateGenre(data.genre);
 
       const music = await MusicRepository.findById(musicId);
-      if(!music){
-        throw new ErrorApp(
-          "Musica não existe.",
-          404,
-          ErrorCodes.MUSIC_NOT_FOUND
-        );
-      }
-      if(music.userId !== userId){
-        throw new ErrorApp(
-          "Usuario não autorizado.",
-          403,
-          ErrorCodes.UNAUTHORIZED_ACTION
-        );
-      }
+      Validator.validateNonExistence(music, "Musica");
+      Validator.validateUserAutorization(music.userId, userId);
 
       const musicNameExist = await MusicRepository.findByName(data.musicName);
-      if(musicNameExist && music.musicName !== data.musicName){
-        throw new ErrorApp(
-          "Nome da musica ja em uso.",
-          400,
-          ErrorCodes.INVALID_NAME
-        );
-      }
+      if(music.musicName !== data.musicName) Validator.validateIfExist(musicNameExist, "Musica");
 
       const updateMusicData = {
             musicName: data.musicName || music.musicName,
@@ -185,13 +101,7 @@ module.exports = {
 
     async getMusicFile(musicId){
       const musicData = await MusicRepository.findById(musicId);
-      if(!musicData){
-        throw new ErrorApp(
-          "Musica não existe.",
-          404,
-          ErrorCodes.MUSIC_NOT_FOUND
-        );
-      }
+      Validator.validateNonExistence(musicData, "Musica");
 
       const mimeType = mime.lookup(musicData.path);
       if (!mimeType || !mimeType.startsWith("audio/")) {

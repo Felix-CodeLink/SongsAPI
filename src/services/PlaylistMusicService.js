@@ -3,32 +3,16 @@ const PlaylistService = require("./PlaylistService");
 const MusicService = require("./MusicService");
 const ErrorApp = require("../utils/errorApp");
 const ErrorCodes = require("../constants/errorCodes");
+const Validator = require("../utils/validator");
 
 module.exports = {
     async addMusics(musicIds, playlistId, userId){
-        if(musicIds.length === 0 || !Array.isArray(musicIds)){
-            throw new ErrorApp(
-                "Lista de musicas invalida",
-                400,
-                ErrorCodes.INVALID_DATA
-            );
-        }
+        Validator.validateRequireField(musicIds, "Musicas");
+        Validator.validateArrayLength(musicIds, 1, "Musicas");
 
         const playlist = await PlaylistService.findPlaylist(playlistId);
-        if(!playlist){
-            throw new ErrorApp(
-                "Playlist não encontrada",
-                404,
-                ErrorCodes.PLAYLIST_NOT_FOUND
-            );
-        }
-        if(playlist.userId !== userId){
-            throw new ErrorApp(
-                "Usuario não autorizado",
-                403,
-                ErrorCodes.UNAUTHORIZED_ACTION
-            );
-        }
+        Validator.validateNonExistence(playlist, "Playlist");
+        Validator.validateUserAutorization(playlist.userId, userId);
 
         const results = await Promise.allSettled(
             musicIds.map(async (musicId) =>{
@@ -52,40 +36,13 @@ module.exports = {
                 }
             }));
 
-            const musicCheck = {success: [], fail: []}
-
-            for(const result of results){
-                if(result.status === "fulfilled"){
-                    if(result.value.status === "success"){
-                        musicCheck.success.push(result.value);
-                    } else{
-                        musicCheck.fail.push(result.value);
-                    }
-                } else{
-                    console.error("Erro interno:", result.reason);
-                    musicCheck.fail.push({musicId: null, error: result.reason.message});
-                }
-            }
-
-        return musicCheck;
+        return musicCheck = this.resultsTreatment(results);
     },
     async getMusics(playlistId, userId){
 
         const playlistExist = await PlaylistService.findPlaylist(playlistId);
-        if(!playlistExist){
-            throw new ErrorApp(
-                "Playlist não encontrada",
-                404,
-                ErrorCodes.PLAYLIST_NOT_FOUND
-            );
-        }
-        if(playlistExist.userId !== userId){
-            throw new ErrorApp(
-                "Usuario não autorizado",
-                403,
-                ErrorCodes.UNAUTHORIZED_ACTION
-            );
-        }
+        Validator.validateNonExistence(playlistExist, "Playlist");
+        Validator.validateUserAutorization(playlistExist.userId, userId);
 
         const playlistMusics = await PlaylistMusicRepository.findMusicsByPlaylist(playlistId);
         if(playlistMusics.length === 0){
@@ -116,51 +73,16 @@ module.exports = {
             })
         );
 
-        const musicCheck = {
-            success: [],
-            fail: []
-        };
-
-        for(const result of results){
-            if(result.status === "fulfilled"){
-                if(result.value.status === "success"){
-                    musicCheck.success.push(result.value);
-                } else{
-                    musicCheck.fail.push(result.value);
-                }
-            } else{
-                console.error("Erro interno:", result.reason);
-                musicCheck.fail.push({musicId: null, error: result.reason.message});
-            }
-        }
-
-        return musicCheck;
+        return musicCheck = this.resultsTreatment(results);
     },
 
     async removeMusics(musicsToRemove, playlistId, userId){
-        if(!Array.isArray(musicsToRemove) || !musicsToRemove){
-            throw new ErrorApp(
-                "Lista de musicas invalida",
-                400,
-                ErrorCodes.INVALID_DATA
-            );
-        }
+        Validator.validateRequireField(musicsToRemove, "Musicas");
+        Validator.validateArrayLength(musicsToRemove, 1, "Musicas")
 
         const playlistExist = await PlaylistService.findPlaylist(playlistId);
-        if(!playlistExist){
-            throw new ErrorApp(
-                "Playlist não encontrada.",
-                404,
-                ErrorCodes.PLAYLIST_NOT_FOUND
-            );
-        }
-        if(playlistExist.userId !== userId){
-            throw new ErrorApp(
-                "Usuario não autorizado.",
-                403,
-                ErrorCodes.UNAUTHORIZED_ACTION
-            );
-        }
+        Validator.validateNonExistence(playlistExist, "Playlist");
+        Validator.validateUserAutorization(playlistExist.userId, userId);
 
         const results = await Promise.allSettled(
             musicsToRemove.map(async (music) => {
@@ -184,16 +106,20 @@ module.exports = {
             })
         );
 
+        return musicCheck = this.resultsTreatment(results);
+    },
+
+    resultsTreatment(results){
         const musicCheck = {
             success: [],
             fail: []
-        }
+        };
 
         for(const result of results){
             if(result.status === "fulfilled"){
                 if(result.value.status === "success"){
                     musicCheck.success.push(result.value);
-                }else{
+                } else{
                     musicCheck.fail.push(result.value);
                 }
             } else{
@@ -201,7 +127,7 @@ module.exports = {
                 musicCheck.fail.push({musicId: null, error: result.reason.message});
             }
         }
-        
+
         return musicCheck;
     }
 };

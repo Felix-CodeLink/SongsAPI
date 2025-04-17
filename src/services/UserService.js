@@ -6,42 +6,22 @@ const UserRepository = require("../repositories/UserRepository");
 const MusicService = require("./MusicService");
 const ErrorApp = require("../utils/errorApp");
 const ErrorCodes = require("../constants/errorCodes");
+const Validator = require("../utils/validator");
 
 module.exports = {
 
     async createUser({ username, email, password}){
-        if(username.length < 2){
-            throw new ErrorApp(
-                "Nome de usuario muito curto.",
-                400,
-                ErrorCodes.INVALID_NAME
-            );
-        }
-        if(password.length < 6){
-            throw new ErrorApp(
-                "Senha muito curto.",
-                400,
-                ErrorCodes.INVALID_DATA
-            );
-        }
+        Validator.validateRequireField(username, "Usuario");
+        Validator.validateFieldLength(username, 2, "Usuario");
+
+        Validator.validateRequireField(password, "Senha");
+        Validator.validateFieldLength(password, 6, "Senha");
 
         const userExistName = await UserRepository.findByUsername(username);
-        if(userExistName){
-            throw new ErrorApp(
-                "Nome de usuario ja em uso.",
-                400,
-                ErrorCodes.INVALID_NAME
-            );
-        }
+        Validator.validateIfExist(userExistName, "Usuario");
         
         const userExistEmail = await UserRepository.findByEmail(email);
-        if(userExistEmail){
-            throw new ErrorApp(
-                "Email ja em uso.",
-                400,
-                ErrorCodes.INVALID_DATA
-            );
-        }
+        Validator.validateIfExist(userExistEmail, "Email");
 
         const passwordHash = await bcrypt.hash(password, 10);
 
@@ -61,54 +41,24 @@ module.exports = {
     async deleteUserByToken(id){
         const userExist = await UserRepository.findById(id)
 
-        if (!userExist){
-            throw new ErrorApp(
-                "Usuario não encontrado.",
-                404,
-                ErrorCodes.USER_NOT_FOUND
-            );
-        }
+        Validator.validateNonExistence(userExist, "Usuario");
 
         await MusicService.deleteMusicsByUserId(id);
         await UserRepository.deleteUser(id);
     },
 
     async updateUser(data, id){
-        if(data.username && data.username.length < 2){
-            throw new ErrorApp(
-                "Nome de usuario muito curto.",
-                400,
-                ErrorCodes.INVALID_NAME
-            );
-        }
-        if(data.password && data.password.length < 6){
-            throw new ErrorApp(
-                "Senha muito curta.",
-                400,
-                ErrorCodes.INVALID_DATA
-            );
-        }
+        if(data.username)Validator.validateFieldLength(data.username, 2, "Usuario");
+        if(data.password) Validator.validateFieldLength(data.password, 6, "Senha");
         
         if(data.username){
             const userExistName = await UserRepository.findByUsername(data.username);
-            if(userExistName && userExistName.id !== id){
-                throw new ErrorApp(
-                    "Nome de usuario ja em uso.",
-                    400,
-                    ErrorCodes.INVALID_NAME
-                );
-            }
+            if(userExistName.id !== id) Validator.validateIfExist(userExistName, "Usuario");
         }
 
         if(data.email){
             const userExistEmail = await UserRepository.findByEmail(data.email);
-            if(userExistEmail && userExistEmail.id !== id){
-                throw new ErrorApp(
-                    "Email ja em uso.",
-                    400,
-                    ErrorCodes.INVALID_DATA
-                );
-            }
+            if(userExistEmail.id !== id) Validator.validateIfExist(userExistEmail, "Email");
         }
 
         const user = await UserRepository.findById(id);
@@ -126,10 +76,7 @@ module.exports = {
         const updatedUser = await UserRepository.findById(id);
         await UserRepository.updateToken(updatedUser.tokenVersion, updatedUser.id);
 
-        const newToken = jwt.sign({
-            id: updatedUser.id,
-            tokenVersion: updatedUser.tokenVersion + 1
-        }, process.env.JWT_SECRET, {expiresIn: "1d"});
+        const newToken = this.generateNewToken(updatedUser.id, updatedUser.tokenVersion);
         
         return {
             oldName: user.username,
@@ -137,5 +84,12 @@ module.exports = {
             email: updatedUser.email,
             newToken: newToken
         }
+    },
+
+    generateNewToken(userId, tokenVersion){
+        jwt.sign({
+            id: userId,
+            tokenVersion: tokenVersion + 1
+        }, process.env.JWT_SECRET, {expiresIn: "1d"});
     }
 };

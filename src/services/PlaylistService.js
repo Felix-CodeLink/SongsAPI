@@ -1,17 +1,13 @@
 const PlaylistRepository = require("../repositories/PlaylistRepository");
 const ErrorApp = require("../utils/errorApp");
 const ErrorCodes = require("../constants/errorCodes");
+const Validator = require("../utils/validator");
 
 module.exports = {
 
     async createPlaylist(playlistName, userId){
-        if(!playlistName || playlistName.length < 2){
-            throw new ErrorApp(
-                "Nome de playlist muito curto.",
-                400,
-                ErrorCodes.INVALID_NAME
-              );
-        }
+        Validator.validateRequireField(playlistName, "Playlist");
+        Validator.validateFieldLength(playlistName, 2, "Playlist");
         
         const playlistData= {
             playlistName,
@@ -19,13 +15,7 @@ module.exports = {
         };
 
         const playlistNameUsed = await PlaylistRepository.findPlaylistOnUser(playlistData);
-        if(playlistNameUsed){
-            throw new ErrorApp(
-                "Uma playlist de mesmo nome ja existe no usuario.",
-                400,
-                ErrorCodes.INVALID_NAME
-              );
-        }
+        Validator.validateIfExist(playlistNameUsed, "Playlist");
 
         const newPlaylist = await PlaylistRepository.createPlaylist(playlistData);
 
@@ -37,13 +27,8 @@ module.exports = {
 
     async updatePlaylist(playlistName, playlistId, userId){
 
-        if(playlistName.length < 2 || !playlistName){
-            throw new ErrorApp(
-                "Nome de playlist muito curto.",
-                400,
-                ErrorCodes.INVALID_NAME
-              );
-        }
+        Validator.validateRequireField(playlistName, "Playlist");
+        Validator.validateFieldLength(playlistName, 2, "Playlist");
 
         const playlistData= {
             playlistName,
@@ -51,28 +36,11 @@ module.exports = {
         };
 
         const playlistExist = await PlaylistRepository.findById(playlistId);
-        if(!playlistExist){
-            throw new ErrorApp(
-                "Playlist não encontrada.",
-                404,
-                ErrorCodes.PLAYLIST_NOT_FOUND
-              );
-        }
-        if(playlistExist.userId !== userId){
-            throw new ErrorApp(
-                "Usuario não autorizado.",
-                403,
-                ErrorCodes.UNAUTHORIZED_ACTION
-              );
-        }
+        Validator.validateNonExistence(playlistExist, "Playlist");
+        Validator.validateUserAutorization(playlistExist.userId, userId);
+
         const playlistNameUsed = await PlaylistRepository.findPlaylistOnUser(playlistData);
-        if(playlistNameUsed) {
-            throw new ErrorApp(
-                "Uma playlist de mesmo nome ja existe no usuario.",
-                400,
-                ErrorCodes.INVALID_NAME
-              );
-        }
+        Validator.validateIfExist(playlistNameUsed, "Playlist");
 
         await PlaylistRepository.updatePlaylist(playlistName, playlistId);
         const updatedPlaylist = await PlaylistRepository.findById(playlistId);
@@ -85,20 +53,8 @@ module.exports = {
 
     async deletePlaylist(playlistId, userId){
         const playlistExist = await PlaylistRepository.findById(playlistId);
-        if(!playlistExist){
-            throw new ErrorApp(
-                "Playlist não existe.",
-                404,
-                ErrorCodes.PLAYLIST_NOT_FOUND
-              );
-        }
-        if(playlistExist.userId !== userId){
-            throw new ErrorApp(
-                "Usuario sem autorização.",
-                403,
-                ErrorCodes.UNAUTHORIZED_ACTION
-              );
-        }
+        Validator.validateNonExistence(playlistExist, "Playlist");
+        Validator.validateUserAutorization(playlistExist.userId, userId);
 
         await PlaylistRepository.deletePlaylist(playlistId);
         

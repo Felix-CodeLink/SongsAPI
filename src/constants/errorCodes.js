@@ -10,7 +10,8 @@ const ErrorCodes = {
     INVALID_DATA: "INVALID_DATA",
     INVALID_NAME: "INVALID_NAME",
     INVALID_TOKEN: "INVALID_TOKEN",
-    TOKEN_NOT_FOUND: "TOKEN_NOT_FOUND"
+    TOKEN_NOT_FOUND: "TOKEN_NOT_FOUND",
+    NOT_FOUND: "NOT_FOUND"
   };
   
   module.exports = ErrorCodes;
