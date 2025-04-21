@@ -9,8 +9,8 @@ const MusicRepository = {
         return await Music.findOne({where: {musicName}, attributes: ["musicName"]});
     },
 
-    async searchMusics(data, offset = 0, limit = null){
-        const option = {where: data};
+    async searchMusics(where, offset = 0, limit = null){
+        const option = {where};
         if(offset !== null) option.offset = offset;
         if(limit !== null) option.limit = limit;
 
@@ -31,6 +31,15 @@ const MusicRepository = {
 
     async findMusicsPathByUser(userId){
         return await Music.findAll({where: {userId}, attributes: ["id","musicName","path"]});
+    },
+
+    async findMusicsByUser(userId, offset = 0, limit = null){
+        const option = { where: {userId}};
+        if(offset !== null) option.offset = offset;
+        if(limit !== null) option.limit = limit;
+        option.attributes = ["id", "musicName", "artistName", "genre"];
+
+        return await Music.findAll({...option})
     }
 };
 

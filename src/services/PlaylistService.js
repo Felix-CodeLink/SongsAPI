@@ -62,9 +62,9 @@ module.exports = {
     },
 
     async getUserPlaylists(userId, page){
-        Validator.validateFieldLength(page, 1, "Pagina");
-        const offset = 10 * (page - 1);
-        const limit = offset + 10;
+        Validator.validatePage(page, "Pagina");
+        const limit = 10;
+        const offset = (page - 1) * limit;
         const playlistsArray = await PlaylistRepository.findUserPlaylists(userId, offset, limit);
 
         if(playlistsArray.length <= 0){

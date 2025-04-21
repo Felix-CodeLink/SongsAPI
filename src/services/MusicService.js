@@ -35,7 +35,7 @@ module.exports = {
     },
 
     async searchMusics(data, page){
-      Validator.validateFieldLength(page, 1, "Página");
+      Validator.validatePage(page, "Página");
       if(data.genre) Validator.validateGenre(data.genre);
 
       let where = {};
@@ -50,10 +50,10 @@ module.exports = {
           where.genre = `${data.genre.toLowerCase()}`;
       }
 
-      const offset = 10 * (page - 1);
-      const limit = offset + 10;
+      const limit = 10;
+      const offset = (page - 1) * limit;
       const musicsArray = await MusicRepository.searchMusics(where, offset, limit);
-      Validator.validateArrayLength(musicsArray, 1, "Musicas");
+      Validator.validateArrayNotEmpty(musicsArray, "Musica");
       
       return musicsArray;
     },
@@ -129,6 +129,19 @@ module.exports = {
             await fs.unlink(music.path);
           })
         );
+    },
+
+    async getUserMusics(page, userId){
+
+      Validator.validatePage(page, "Pagina");
+      
+      const limit = 10;
+      const offset = (page - 1) * limit;
+
+      const musicArray = await MusicRepository.findMusicsByUser(userId, offset, limit);
+      Validator.validateArrayNotEmpty(musicArray, "Musica");
+
+      return musicArray;
     },
 
     async findMusic(musicId){

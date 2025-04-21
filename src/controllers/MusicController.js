@@ -138,6 +138,34 @@ module.exports = {
         }
     },
 
+    async getUserMusics(req, res){
+        try{
+
+            const {page} = req.params;
+            const musicsArray = await MusicService.getUserMusics(page, req.userId);
+
+            logger.success(
+                "MusicControler.getUserMusics",
+                `Usuario de id: ${req.userId}.\n`+
+                `Quantidade de musicas encontradas: ${musicsArray.length}.\n`
+            );
+            res.status(200).json({
+                status: "success",
+                message: `${musicsArray.length} musicas encontradas`,
+                data: musicsArray
+            });
+            
+        }catch(error){
+            logger.error("MusicControler.getUserMusics", error);
+            res.status(error.status || 400).
+            json({
+                status: "error",
+                message: error.message || "Erro interno do servidor",
+                code: error.code || "INTERNAL_ERROR"}
+            );
+        }
+    },
+
     async getMusicFile(req, res){
         try{
             const {musicId} = req.params;

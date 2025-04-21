@@ -17,4 +17,6 @@ router.put("/update/:musicId", MusicController.updateMusic);
 
 router.get("/musicFile/:musicId", MusicController.getMusicFile);
 
+router.get("/userMusics/:page", MusicController.getUserMusics);
+
 module.exports = router;

@@ -98,6 +98,26 @@ module.exports = {
                 ErrorCodes.INVALID_DATA
             );
         }
+    },
+
+    validatePage(page){
+        if(!page || page < 1){
+            throw new ErrorApp(
+                "Página selecionada não existe.",
+                404,
+                ErrorCodes.NOT_FOUND
+            );
+        }
+    },
+
+    validateArrayNotEmpty(array, field = "Campo"){
+        if(!array || array.length < 1){
+            throw new ErrorApp(
+                `Nenhuma ${field} encontrada;`,
+                404,
+                ErrorCodes.NOT_FOUND
+            );
+        }
     }
 }
 
