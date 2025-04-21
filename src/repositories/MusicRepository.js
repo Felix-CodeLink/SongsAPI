@@ -9,8 +9,12 @@ const MusicRepository = {
         return await Music.findOne({where: {musicName}, attributes: ["musicName"]});
     },
 
-    async searchMusics(data){
-        return await Music.findAll({where: data, attributes: ['id', 'musicName', 'artistName', 'genre']});
+    async searchMusics(data, offset = 0, limit = null){
+        const option = {where: data};
+        if(offset !== null) option.offset = offset;
+        if(limit !== null) option.limit = limit;
+
+        return await Music.findAll({...option, attributes: ['id', 'musicName', 'artistName', 'genre']});
     },
 
     async findById(id){

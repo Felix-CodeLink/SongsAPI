@@ -9,7 +9,7 @@ router.use(authMiddleware);
 
 router.post("/upload", uploadAudioMiddleware.single("file"), MusicController.uploadMusic);
 
-router.get("/search", MusicController.searchMusics)
+router.get("/search/:page", MusicController.searchMusics)
 
 router.delete("/delete/:musicId", MusicController.deleteMusic);
 

@@ -38,7 +38,8 @@ module.exports = {
         try{
 
             const {playlistId} = req.params;
-            const musicCheck = await PlaylistMusicService.getMusics(playlistId, req.userId);
+            const {page} = req.params;
+            const musicCheck = await PlaylistMusicService.getMusics(playlistId, page, req.userId);
 
             logger.success(
                 "PlaylistMusics.getMusics",

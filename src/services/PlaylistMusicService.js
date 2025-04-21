@@ -38,13 +38,19 @@ module.exports = {
 
         return musicCheck = this.resultsTreatment(results);
     },
-    async getMusics(playlistId, userId){
+    async getMusics(playlistId, page, userId){
+
+        Validator.validateFieldLength(page, 1, "Pagina");
 
         const playlistExist = await PlaylistService.findPlaylist(playlistId);
         Validator.validateNonExistence(playlistExist, "Playlist");
         Validator.validateUserAutorization(playlistExist.userId, userId);
 
-        const playlistMusics = await PlaylistMusicRepository.findMusicsByPlaylist(playlistId);
+        const offset = 10 * (page - 1);
+        const limit = offset + 10;
+
+
+        const playlistMusics = await PlaylistMusicRepository.findMusicsByPlaylist(playlistId, offset, limit);
         if(playlistMusics.length === 0){
             throw new ErrorApp(
                 "Playlist Vazia",

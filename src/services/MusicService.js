@@ -34,8 +34,8 @@ module.exports = {
       };
     },
 
-    async searchMusics(data){
-
+    async searchMusics(data, page){
+      Validator.validateFieldLength(page, 1, "Página");
       if(data.genre) Validator.validateGenre(data.genre);
 
       let where = {};
@@ -50,7 +50,9 @@ module.exports = {
           where.genre = `${data.genre.toLowerCase()}`;
       }
 
-      const musicsArray = await MusicRepository.searchMusics(where);
+      const offset = 10 * (page - 1);
+      const limit = offset + 10;
+      const musicsArray = await MusicRepository.searchMusics(where, offset, limit);
       Validator.validateArrayLength(musicsArray, 1, "Musicas");
       
       return musicsArray;

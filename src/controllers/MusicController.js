@@ -54,8 +54,9 @@ module.exports = {
     async searchMusics(req, res){
         try{
             const musicData = req.body;
+            const {page} = req.params;
 
-            const musicsArray = await MusicService.searchMusics(musicData);
+            const musicsArray = await MusicService.searchMusics(musicData, page);
 
             logger.success(
                 "MusicControler.search",

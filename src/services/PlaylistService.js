@@ -61,8 +61,11 @@ module.exports = {
         return playlistExist.playlistName;
     },
 
-    async getUserPlaylists(userId){
-        const playlistsArray = await PlaylistRepository.findUserPlaylists(userId);
+    async getUserPlaylists(userId, page){
+        Validator.validateFieldLength(page, 1, "Pagina");
+        const offset = 10 * (page - 1);
+        const limit = offset + 10;
+        const playlistsArray = await PlaylistRepository.findUserPlaylists(userId, offset, limit);
 
         if(playlistsArray.length <= 0){
             throw new ErrorApp(

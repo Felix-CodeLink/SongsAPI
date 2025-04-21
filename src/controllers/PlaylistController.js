@@ -96,7 +96,8 @@ module.exports = {
 
     async getUserPlaylists(req, res){
         try{
-            const userPlaylists = await PlaylistService.getUserPlaylists(req.userId);
+            const {page} = req.params;
+            const userPlaylists = await PlaylistService.getUserPlaylists(req.userId, page);
 
             logger.success(
                 "PlaylistController.getUserPlaylists",

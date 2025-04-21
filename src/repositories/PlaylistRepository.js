@@ -22,7 +22,10 @@ module.exports = {
         return await Playlist.destroy({where: {id}});
     },
 
-    async findUserPlaylists(userId){
-        return await Playlist.findAll({where: {userId}, attributes: ["id", "playlistName"]});
+    async findUserPlaylists(userId, offset = 0, limit = null){
+        const option = {where: {userId}};
+        if(offset !== null) option.offset = offset;
+        if(limit !== null) option.limit = limit;
+        return await Playlist.findAll({...option, attributes: ["id", "playlistName"]});
     }
 };

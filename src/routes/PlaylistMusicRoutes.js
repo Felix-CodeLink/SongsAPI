@@ -7,7 +7,7 @@ const PlaylistMusicController = require("../controllers/PlaylistMusicController"
 router.use(authMiddleware);
 
 router.post("/addMusic/:playlistId", PlaylistMusicController.addMusics);
-router.get("/getMusics/:playlistId", PlaylistMusicController.getMusics);
+router.get("/getMusics/:playlistId/:page", PlaylistMusicController.getMusics);
 router.delete("/removeMusic/:playlistId", PlaylistMusicController.removeMusics);
 
 module.exports = router;
